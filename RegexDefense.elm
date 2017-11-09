@@ -19,15 +19,54 @@ main =
 -- MODEL
 
 
+
+-- Pattern Generation and Matching Stuff
+
+type alias EditDistance = Integer
+type alias PointValue = Integer
+
+type TokenType
+  = AlphaUpper
+  | AlphaLower
+  | NonWord
+  | Digit
+  | Whitespace
+
+type alias Token =
+    { token: TokenType
+    , repCount: Integer
+    }
+  
+type alias MatchPattern =
+    { expression: List Token
+    , minLen: Integer
+    , maxLen: Integer
+    }
+
+-- Where am I supposed to put functions?
+
+patternMorph: MatchPattern -> EditDistance -> MatchPattern
+
+stringGen: MatchPattern -> String
+
+missileGen: MatchPattern -> PointValue -> Position -> Missile
+
+
+-- Gameplay stuff
+
 type alias Defense =
     String
 
+type alias Position =
+    { x: Integer
+    , y: Integer
+    }
 
 type alias Missile =
     { word : String
-    , column : Int
-    , height : Int
-    , points : Int
+    , position: Position
+    , value : PointValue
+    --, dropSpeed: Integer
     }
 
 
@@ -46,7 +85,19 @@ init : ( Model, Cmd Msg )
 init =
     ( blank, Cmd.none )
 
+-- Function prototypes, not sure where these go...
 
+-- patternMorph takes a pattern and a morph depth of n and returns a MatchPattern n edits away
+patternMorph: MatchPattern -> EditDistance -> MatchPattern
+
+-- generates strings from patterns
+stringGen: MatchPattern -> String
+
+-- generates missiles from patterns and point values... should generate own position internally? 
+makeMissile: String -> PointValue -> Position -> Missile
+
+-- Should generate missiles and antiMissiles and return a list of missiles
+makeVolley: MatchPattern -> List Missile
 
 -- UPDATE
 
