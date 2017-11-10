@@ -10,27 +10,60 @@ paper.view.draw();
 // })
 
 
-const wordList = ['aword', 'another', 'donut', 'toothfairy'];
+const goodWordList = ['peace', 'love', 'hugs', 'friendship', 'dolphins', 'teddy bear'];
+const badWordList = ['peas', 'loss', 'huge', 'friendsnot', 'sharks', 'teddy bare']
+const defenseBox = document.querySelector('#defenseString')
+defenseBox.addEventListener('keypress', function (e) {
+    var key = e.which || e.keyCode;
+    if (key === 13) { 
+    	testDefense()
+    }
+});
 
 
 
-const MISSILE_COLOR = 'black'
+
+const GOOD_MISSILE_COLOR = 'blue'
+const BAD_MISSILE_COLOR = 'red'
+const DEAD_MISSILE_COLOR = 'grey'
+
 const MISSILE_FONT_SIZE = 25
 
 const allMissiles = [];
-const Missile = function(startPos, string, pointValue) {
+const deadMissiles = [];
+const Missile = function(startPos, string, pointValue, color) {
 	this.string = string
 	this.pointValue = pointValue
-	this.momentum = [0, getRandomFloat(1,3)]
-	console.log(this.momentum)
+	this.momentum = [0, getRandomFloat(0,1)+.05]
 	this.rep = new paper.PointText({
 		point: startPos,
 		content: string,
-		fillColor: MISSILE_COLOR,
+		fillColor: color,
 		fontSize: MISSILE_FONT_SIZE
 	})
 
 	allMissiles.push(this)
+
+	this.remove = () => {
+		this.rep.remove();
+		allMissiles.splice(allMissiles.indexOf(this), 1)
+	}
+}
+
+const testDefense = () => {
+	const regex = '^' + defenseBox.value + '$'
+	defenseBox.value = ''
+	for (let i = allMissiles.length-1; i>-1; i--){
+		const missile = allMissiles[i]
+		if (missile.string.match(regex)) {
+			missile.rep.fillColor = DEAD_MISSILE_COLOR
+			// missile.rep.opacity = .2
+			deadMissiles.push(missile)
+			allMissiles.splice(allMissiles.indexOf(missile), 1)
+			// console.log('allMissiles indexOf:', allMissiles.indexOf())
+		}
+	}
+	// console.log('testing regex:', defenseBox.value)
 }
 
 
@@ -38,29 +71,57 @@ const Missile = function(startPos, string, pointValue) {
 // const tMis = new Missile([paper.view.center.x, 100], 'test', -100)
 
 const makeMissiles = function(wordlist){
-	for (let word of wordlist){
-		const thisMissile = new Missile([100, -100], word, -100)
+	for (let word of goodWordList){
+		const thisMissile = new Missile([getRandomInt(0,paper.view.bounds.width), 0], word, 100, GOOD_MISSILE_COLOR)
+	}
+	for (let word of badWordList){
+		const thisMissile = new Missile([getRandomInt(0,paper.view.bounds.width), 0], word, 100, BAD_MISSILE_COLOR)
+	}
+}
+
+const decayDeadMissiles = () => {
+	for (let missile of deadMissiles){
+		missile.rep.opacity -= .01;
+		// console.log('dead opacity',missile.rep.opacity)
+		if (missile.rep.opacity < .02){
+			missile.rep.remove()
+			deadMissiles.splice(deadMissiles.indexOf(missile),1)
+		}
 	}
 }
 
 
-
+let timer = 0
 paper.view.onFrame = (event) => {
 	// console.log('test')
+
+	if (deadMissiles.length>0)
+		decayDeadMissiles();
+
+
+	timer += event.delta;
+	if (timer>2) {
+		timer = 0;
+		makeMissiles(goodWordList)
+	}
 	for (let missile of allMissiles){
 		missile.rep.position = addPoints(missile.rep.position, missile.momentum)
+		if (missile.rep.position.y > paper.view.bounds.height) {
+			console.log('BANG')
+			missile.remove()
+		}
 	}
 }
 
 
 
 
-makeMissiles(wordList)
-console.log(allMissiles[0].rep.position)
+// makeMissiles(goodWordList)
+// console.log(allMissiles[0].rep.position)
 
 
 
-console.log('PAPER RAN')
+console.log('PAPER RAN',paper.view.bounds.width)
 
 
 
